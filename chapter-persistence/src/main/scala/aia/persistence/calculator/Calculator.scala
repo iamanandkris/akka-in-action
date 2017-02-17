@@ -5,8 +5,8 @@ import akka.actor._
 import akka.persistence._
 
 object Calculator {
-  def props = Props(new Calculator)
-  def name = "my-calculator"
+  def props = Props(new Calculator("a","b"))
+  def name = "my-calculator-test8"
 
   //<start id="persistence-calc_commands_events"/>
   sealed trait Command //<co id="persistence-calc_command"/>
@@ -18,12 +18,12 @@ object Calculator {
   case object PrintResult extends Command
   case object GetResult extends Command
 
-  sealed trait Event //<co id="persistence-calc_event"/>
-  case object Reset extends Event
-  case class Added(value: Double) extends Event
-  case class Subtracted(value: Double) extends Event
-  case class Divided(value: Double) extends Event
-  case class Multiplied(value: Double) extends Event
+  sealed trait Event extends Serializable//<co id="persistence-calc_event"/>
+  case class Reset(actor:ActorRef) extends Event
+  case class Added(value: Double,actor:ActorRef) extends Event
+  case class Subtracted(value: Double,actor:ActorRef) extends Event
+  case class Divided(value: Double,actor:ActorRef) extends Event
+  case class Multiplied(value: Double,actor:ActorRef) extends Event
   //<end id="persistence-calc_commands_events"/>
 
   //<start id="persistence-calc_result"/>
@@ -38,43 +38,42 @@ object Calculator {
 }
 
 //<start id="persistence-extend_persistent_actor"/>
-class Calculator extends PersistentActor with ActorLogging {
+class Calculator(val one:String, two:String) extends PersistentActor with ActorLogging {
   import Calculator._
 
-  def persistenceId = Calculator.name
+  override def persistenceId = Calculator.name
+
+  val testing ="Testing"
+  context.actorSelection("/user/callSupervisor") ! Identify("Testing")
+
+  var anotherActor = ActorRef.noSender
+  var printActor= context.actorOf(Props(new GrandSon),"PrintActorTest")
+  printActor ! "Starting the Action!!!!"
 
   var state = CalculationResult()
-  // more code to follow ..
-  //<end id="persistence-extend_persistent_actor"/>
 
-
-  //<start id="persistence-receive_recover_calc"/>
   val receiveRecover: Receive = {
     case event: Event => updateState(event)
     case RecoveryCompleted => log.info("Calculator recovery completed") //<co id="recovery_completed"/>
   }
-  //<end id="persistence-receive_recover_calc"/>
 
-  //<start id="persistence-receive_command_calc"/>
   val receiveCommand: Receive = {
-    case Add(value)      => persist(Added(value))(updateState)
-    case Subtract(value) => persist(Subtracted(value))(updateState)
-    case Divide(value)   => if(value != 0) persist(Divided(value))(updateState)
-    case Multiply(value) => persist(Multiplied(value))(updateState)
+
+    case Add(value)      => persist(Added(value,printActor))(updateState)
+    case Subtract(value) => persist(Subtracted(value,printActor))(updateState)
+    case Divide(value)   => if(value != 0) persist(Divided(value,printActor))(updateState)
+    case Multiply(value) => persist(Multiplied(value,printActor))(updateState)
     case PrintResult     => println(s"the result is: ${state.result}")
     case GetResult       => sender() ! state.result
-    case Clear           => persist(Reset)(updateState)
+    case Clear           => persist(Reset(printActor))(updateState)
   }
-  //<end id="persistence-receive_command_calc"/>
 
-  //<start id="persistence-update_state_calc"/>
   val updateState: Event => Unit = {
-    case Reset             => state = state.reset
-    case Added(value)      => state = state.add(value)
-    case Subtracted(value) => state = state.subtract(value)
-    case Divided(value)    => state = state.divide(value)
-    case Multiplied(value) => state = state.multiply(value)
+    case Reset(x:ActorRef)            => state = state.reset; x ! state.result.toString
+    case Added(value,x:ActorRef)      => state = state.add(value); x ! state.result.toString
+    case Subtracted(value,x:ActorRef) => state = state.subtract(value); x ! state.result.toString
+    case Divided(value,x:ActorRef)    => state = state.divide(value); x ! state.result.toString
+    case Multiplied(value,x:ActorRef) => state = state.multiply(value); x ! state.result.toString
   }
-  //<end id="persistence-update_state_calc"/>
 }
-//<end id="persistence-calc"/>
+

@@ -21,7 +21,7 @@ import spray.json._
 
 import aia.persistence._
 
-class ShoppersService(val shoppers: ActorRef, val system: ActorSystem, val requestTimeout: Timeout) extends ShoppersRoutes {
+class ShoppersService(val shoppers: ActorRef,val system: ActorSystem, val requestTimeout: Timeout) extends ShoppersRoutes {
   val executionContext = system.dispatcher
 }
 //<start id="persistence-shoppersRoutes"/>
@@ -32,9 +32,12 @@ trait ShoppersRoutes extends ShopperMarshalling {
     getBasket ~
     updateBasket ~
     deleteBasket ~
-    pay
+    pay /*~
+    getAccount*/
 
   def shoppers: ActorRef
+
+  //def account:ActorRef
 
   implicit def requestTimeout: Timeout
   implicit def executionContext: ExecutionContext
@@ -127,6 +130,21 @@ trait ShoppersRoutes extends ShopperMarshalling {
     }
   }
 
+
+  /*ef getAccount = {
+    get {
+      pathPrefix("account" / accountIdSegment ) { accountId =>
+        pathEnd {
+          onSuccess(account.ask(Basket.GetItems(account)).mapTo[Items]) {
+            case Items(Nil)   => complete(NotFound)
+            case items: Items => complete(items)
+          }
+        }
+      }
+    }
+  }*/
+
+  val accountIdSegment = Segment.flatMap(id => if(!id.isEmpty) Some(id) else None)
   val ShopperIdSegment = Segment.flatMap(id => Try(id.toLong).toOption)
   val ProductIdSegment = Segment.flatMap(id => if(!id.isEmpty) Some(id) else None)
 }

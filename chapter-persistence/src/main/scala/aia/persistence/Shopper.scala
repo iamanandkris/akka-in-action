@@ -1,10 +1,12 @@
 package aia.persistence
 //<start id="persistence-shopper"/>
 
+import aia.persistence.sharded.MyShardTest
+import aia.persistence.sharded.MyShardTest.Account
 import akka.actor._
 
 object Shopper {
-  def props(shopperId: Long) = Props(new Shopper)
+  def props(shopperId: Long,actor:ActorRef = Actor.noSender) = Props(new Shopper(actor))
   def name(shopperId: Long) = shopperId.toString
 
   trait Command {
@@ -16,7 +18,7 @@ object Shopper {
   val cash = 40000
 }
 
-class Shopper extends Actor {
+class Shopper(actor:ActorRef) extends Actor {
   import Shopper._
 
   def shopperId = self.path.name.toLong
@@ -29,7 +31,13 @@ class Shopper extends Actor {
     Wallet.name(shopperId))
 
   def receive = {
-    case cmd: Basket.Command => basket forward cmd
+    case cmd: Basket.Command => {
+      cmd match {
+        case Basket.GetItems(id) => actor ! MyShardTest.Create(Account("CHS", "TestOwner", "Root", List("Nathan", "Anand")),)
+        case _ =>
+      }
+      basket forward cmd
+    }
     case cmd: Wallet.Command => wallet forward cmd
 
     case PayBasket(shopperId) => basket ! Basket.GetItems(shopperId)

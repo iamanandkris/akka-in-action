@@ -9,7 +9,7 @@ class CalculatorSpec extends PersistenceSpec(ActorSystem("test"))
 
   "The Calculator" should {
     "recover last known result after crash" in {
-      val calc = system.actorOf(Calculator.props, Calculator.name)
+      /*val calc = system.actorOf(Calculator.props, Calculator.name)
       calc ! Calculator.Add(1d)
       calc ! Calculator.GetResult
       expectMsg(1d)
@@ -17,6 +17,7 @@ class CalculatorSpec extends PersistenceSpec(ActorSystem("test"))
       calc ! Calculator.Subtract(0.5d)
       calc ! Calculator.GetResult
       expectMsg(0.5d)
+
 
       killActors(calc)
 
@@ -26,7 +27,12 @@ class CalculatorSpec extends PersistenceSpec(ActorSystem("test"))
 
       calcResurrected ! Calculator.Add(1d)
       calcResurrected ! Calculator.GetResult
-      expectMsg(1.5d)
+      expectMsg(1.5d)*/
+
+      val calc = system.actorOf(GrandFather.props())
+      calc ! "Test Grandpa"
+      //calc ! "tryagain"
+      //killActors(calc)
     }
   }
 }

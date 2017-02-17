@@ -7,6 +7,10 @@ organization := "com.manning"
 resolvers ++= Seq("Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
                   "Sonatype snapshots"  at "http://oss.sonatype.org/content/repositories/snapshots/")
 
+resolvers += Resolver.sonatypeRepo("releases")
+
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
+
 parallelExecution in Test := false
 
 fork := true
@@ -37,7 +41,12 @@ libraryDependencies ++= {
     "org.scalatest"             %%  "scalatest"                           % "2.2.4"       % "test",
 
     "com.typesafe.akka"         %%  "akka-slf4j"                          % akkaVersion,
-    "ch.qos.logback"            %   "logback-classic"                     % "1.1.2"
+    "ch.qos.logback"            %   "logback-classic"                     % "1.1.2",
+    "com.github.krasserm"       %%  "akka-persistence-cassandra-3x"       % "0.6",
+    "com.github.dnvriend"       %%  "akka-persistence-inmemory"           % "1.2.7",
+    "org.typelevel"             %%  "cats"                                % "0.8.1",
+    "io.monix"                  %%  "monix-eval"                          % "2.1.1",
+    "io.monix"                  %%  "monix-cats"                          % "2.1.1"
   )
 }
 

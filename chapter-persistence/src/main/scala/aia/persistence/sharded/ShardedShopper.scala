@@ -6,7 +6,7 @@ import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.Passivate
 
 object ShardedShopper {
-  def props = Props(new ShardedShopper)
+  def props(actor:ActorRef) = Props(new ShardedShopper(actor))
   def name(shopperId: Long) = shopperId.toString
 
 
@@ -23,7 +23,7 @@ object ShardedShopper {
   }
 }
 
-class ShardedShopper extends Shopper {
+class ShardedShopper(actor:ActorRef) extends Shopper(actor) {
   import ShardedShopper._
 
   context.setReceiveTimeout(Settings(context.system).passivateTimeout)
