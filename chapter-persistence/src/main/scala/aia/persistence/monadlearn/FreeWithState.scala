@@ -10,7 +10,7 @@ import scala.concurrent.Future
 /**
   * Created by anand on 21/11/16.
   */
-object FreeWithState {/*
+object FreeWithState extends App { /*
   //Second Operation
   sealed trait ArithF[A]
   case class Add(x: Int, y: Int) extends ArithF[Int]
@@ -48,6 +48,17 @@ object FreeWithState {/*
       case Sub(x,y) => StateT(s => invitationsOpTaskInterpreter(fa).map(p => (s, p)))
     }
   }
-*/
 
+
+  def expr1(n:Int)(implicit arith : Arith[ArithF]): Free[ArithF, Int] = {
+    import arith._
+    for {
+      m <- add(n, n)
+    } yield m
+  }
+
+
+  val run1 = expr1(12).foldMap(ArithInterpreter)
+  println(run1)
+*/
 }

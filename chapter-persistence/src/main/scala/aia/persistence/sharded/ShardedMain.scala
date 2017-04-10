@@ -12,7 +12,7 @@ import aia.persistence.rest.ShoppersServiceSupport
 object ShardedMain extends App with ShoppersServiceSupport {
   implicit val system = ActorSystem("shoppers")
 
-  val accountant = system.actorOf(ShardedAccountant.props,ShardedAccountant.name)
+  val accountant = system.actorOf(ShardedAccountant.props("test"),ShardedAccountant.name)
 
   val shoppers = system.actorOf(ShardedShoppers.props(accountant),ShardedShoppers.name)
 

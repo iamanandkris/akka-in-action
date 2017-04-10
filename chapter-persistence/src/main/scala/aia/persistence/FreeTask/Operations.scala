@@ -1,14 +1,30 @@
 package aia.persistence.FreeTask
 
-import aia.persistence.FreeTask.OperationActor.{immSeq}
+import aia.persistence.FreeTask.OperationActor.immSeq
 import cats.data.{Coproduct, State, StateT}
 import cats.free.{Free, Inject}
+import freasymonad.cats.free
 import monix.eval.Task
 
 /**
   * Created by anand on 15/12/16.
   */
 object Operations {
+
+  @free trait Another {                     // you can use any names you like
+  type KVStoreF[A] = Free[GrammarADT, A]  // as long as you define a type alias for Free
+  sealed trait GrammarADT[A]              // and a sealed trait.
+
+    def put[T](key: String, value: T): KVStoreF[Unit]
+    def get[T](key: String): KVStoreF[Option[T]]
+
+    def update[T](key: String, f: T => T): KVStoreF[Unit] =
+      for {
+        vMaybe <- get[T](key)
+        _      <- vMaybe.map(v => put[T](key, f(v))).getOrElse(Free.pure(()))
+      } yield ()
+  }
+
   object ArithOperations {
     sealed trait ArithF[A]
     case class Add(x: Int, y: Int) extends ArithF[Int]

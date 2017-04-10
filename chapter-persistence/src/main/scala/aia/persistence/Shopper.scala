@@ -33,7 +33,7 @@ class Shopper(actor:ActorRef) extends Actor {
   def receive = {
     case cmd: Basket.Command => {
       cmd match {
-        case Basket.GetItems(id) => actor ! MyShardTest.Create(Account("CHS", "TestOwner", "Root", List("Nathan", "Anand")),)
+        case Basket.GetItems(id) => actor ! MyShardTest.Create(Account("CHS", "TestOwner", "Root", List("Nathan", "Anand")),"test")
         case _ =>
       }
       basket forward cmd
